@@ -281,9 +281,10 @@
       endif !mm
 
 ! changing cutoff to atomic units
+      if(qm.and.mm) then ! agrego if porque sino explota con calculos full qm
       rcorteqmmm=rcorteqmmm*Ang
       rcorteqmmm=rcorteqmmm**2 !we will compare square in cutoff
-
+      endif
       rclas(1:3,1:na_u) = xa(1:3,1:na_u)
 
 ! Read simulation data 
@@ -531,7 +532,7 @@ C Calculate Rcut & block list QM-MM
      . Etots, constropt,nconstr, nstepconstr, typeconstr, kforce, ro,
      . rt, coef, atmsconstr, ndists, istepconstr, rcortemm,
      . radblommbond, optimization_lvl, dt, sfc, water,
-     . imm)
+     . imm,rini,rfin)
 
       call wripdb(na_u,slabel,rclas,natot,step,nac,atname,
      .            aaname,aanum,nesp,atsym,isa,listqmmm,blockqmmm)
