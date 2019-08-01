@@ -14,7 +14,7 @@
 	nbond, nangle, ndihe, nimp, Etot_amber, Elj, &
 	Etots, constropt,nconstr, nstepconstr, typeconstr, kforce, ro, &
 	rt, coef, atmsconstr, ndists, istepconstr, rcortemm, &
-	radblommbond, optimization_lvl, dt, sfc, water, imm)
+	radblommbond, optimization_lvl, dt, sfc, water, imm, rini, rfin)
 
 ! Modules
 	use precision, only: dp
@@ -216,7 +216,8 @@
 	  if(constropt) then
 	    call subconstr2(nconstr,typeconstr,kforce,rini,rfin,ro,rt, &
 	    nstepconstr,atmsconstr,natot,rclas,fdummy,istp,istepconstr, &
-	    ndists,coef,rref,natmsconstr)
+            ndists,coef,natmsconstr)
+!	    ndists,coef,rref,natmsconstr)
 
 
 
