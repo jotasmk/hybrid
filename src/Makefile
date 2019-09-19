@@ -33,7 +33,7 @@ LBFGS:
 LBFGSB  = L-BFGS/lbfgsb.f L-BFGS/linpack.f L-BFGS/blas.f L-BFGS/timer.f
 
 # Note that machine-specific files are now in top Src directory.
-OBJS =  chkdim.o steep.o conjgr.o fixed.o iofa.o ofc.o functions.o \
+OBJS =  invert.o calculate_fef.o chkdim.o steep.o conjgr.o fixed.o iofa.o ofc.o functions.o \
 	inver.o ioxv.o paste.o reclat.o \
 	reinit.o timestamp.o volcel.o cgvc.o iocg.o \
 	centerall.o ran3.o dot.o readall.o subconstr.o \
