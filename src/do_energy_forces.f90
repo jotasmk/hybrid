@@ -238,7 +238,7 @@
 	    call subconstr2(nconstr,typeconstr,kforce,rini,rfin,ro,rt, &
 	    nstepconstr,atmsconstr,natot,rclas,fdummy,istp,istepconstr, &
 	    ndists,coef,natmsconstr)
-	    if(idyn .ge. 4) call subconstr4(istep,rt(1),slabel)
+	    if(idyn .ge. 4 .and. idyn .ne. 7) call subconstr4(istep,rt(1),slabel)
 	  endif 
 	endif !imm
 
@@ -250,7 +250,8 @@
 
 	if (external_potential .gt. 0) call external_bias(external_potential,natot,rclas,fdummy,Etots)
       
-! here Etot in Hartree
+! here Etot in Hartree 
+        if (idyn .ne. 7) then 
 	write(6,*)
 	write(6,'(/,a)') 'hybrid: Potential Energy Decomposition (eV):'
 	if(qm) write(6,999)           'Elio :',Etot/eV      
@@ -259,6 +260,7 @@
 	if(Elink.ne.0.0) write(6,999) 'Elink:  ',Elink/kcal
 	write(6,999)    'Etots:  ',Etots/eV
 	call flush(6)
+        endif
 
 ! Sets fdummy to zero inside mmxqm step
 	if(qm.and.mm) then
