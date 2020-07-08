@@ -3,7 +3,7 @@
 !kind of initialization is controlled by  init_type
 ! N. foglia 03/2018
 	use precision, only: dp
-	use fdf, only: fdf_integer, fdf_block
+	use fdf, only: fdf_integer, fdf_block, fdf_boolean
 	use sys, only: die
 	use scarlett, only: natot, aclas_BAND_old, rclas_BAND, vclas_BAND, &
 	fclas_BAND, fclas_BAND_fresh, Energy_band, NEB_firstimage, NEB_lastimage, NEB_Nimages, &
@@ -11,22 +11,22 @@
 	Ang, eV, kcal, na_u, qm, mm, nesp, natoms_partial_freeze, coord_freeze, &
 	nac, r_cut_list_QMMM, nparm, izs, Em, Rm, pc, rclas, rclas_f, MM_freeze_list, &
 	masst, vat, aat, cfdummy, fdummy, qmattype, attype, atname, aaname, aanum, &
-	ng1, blocklist, blockqmmm, listqmmm, fce_amber, ng1type, angetype, & 
+	ng1, blocklist, blockqmmm, listqmmm, fce_amber, ng1type, angetype, &
 	angmtype, evaldihe, evaldihm, dihety, dihmty, impty, nonbonded, &
-	scale, evaldihelog, evaldihmlog, scalexat, nonbondedxat, &
+	scale14, scale, evaldihelog, evaldihmlog, scalexat, nonbondedxat, &
 	bondxat, angexat, dihexat, dihmxat, angmxat, impxat,  &
 	xa, fa, isa, iza, atsym, charge, spin, writeRF, frstme, &
 	Ndescend, alpha, NEB_time_steep, NEB_alpha,NEB_Ndescend, time_steep, &
 	NEB_move_method, Ndamped, tempion, Nav, pi, blockall, nroaa, verbose_level, &
 	external_potential, qm_level
-	
+
 	implicit none
 	character(len=*), intent(in) :: init_type
 	character :: XF, YF, ZF
 	character*3 :: XYZF
-	integer :: i 
+	integer :: i
 	integer :: iunit
-	
+
 	if ( init_type == 'Jolie') then
 	  write(*,*) "Hi Angi!" !most important part of code of course
 	! Read the number of QM atoms
@@ -41,19 +41,19 @@
 	    write(6,'(/a)') 'hybrid: Running with no MM atoms'
 	    mm=.false.
 	  endif
-	  
+
 	  if (nac.eq.0 .and. na_u.eq.0) then
 	    call die("no atoms in system")
 	  end if
-	
+
 	! Read the number of species
 	  nesp = fdf_integer('NumberOfSpecies',0)
 	  if(qm.and.(nesp.eq.0)) then
 	    call die("hybrid: You must specify the number of species")
 	  endif
-	
+
 	  allocate(xa(3,na_u), fa(3,na_u), isa(na_u), iza(na_u), atsym(nesp))
-	
+
 	! Read number of partial freeze atoms
 	  natoms_partial_freeze = fdf_integer('NumberOfPartialFreeze',0)
 	  if ( natoms_partial_freeze .gt. 0 ) then
@@ -64,7 +64,7 @@
 	      do i=1,natoms_partial_freeze
 	        read(iunit,*,err=2,end=2) coord_freeze(i, 1:4) !atom number, xfreeze, yfreeze, zfreeze
 	      enddo
-	
+
 	      do i=1,natoms_partial_freeze
 	        XF=" "
 	        YF=" "
@@ -78,13 +78,13 @@
 	      enddo
 	    endif
 	  endif
-	
-	
+
+
 	! Read QM coordinates and labels
 	  write(6,*)
 	  write(6,"('read:',71(1h*))")
 	  if(qm) call read_qm(na_u,nesp,isa,iza,xa,atsym,charge, spin)
-	
+
 	! Allocation of solvent variables
 	  natot = nac + na_u
 	  allocate(r_cut_list_QMMM(nac)) ! referencia posiciones de atomos MM con los vectores cortados
@@ -107,7 +107,7 @@
 	  allocate( bondxat(nac), angexat(nac))
 	  allocate(dihexat(nac), dihmxat(nac), angmxat(nac))
 	  allocate(impxat(nac))
-	
+
 	  external_potential=fdf_integer('ExternalPot',-1)
 	  writeRF=0
 	  writeRF = fdf_integer('PFIntegrationOutput',0)
@@ -118,13 +118,15 @@
 	  Ndamped=0
 	  tempion=0.d0
 	  nroaa=0
+		scale14=fdf_boolean('Scale14',.true.)
+		
 	elseif ( init_type == 'Constants') then !define constants and convertion factors
 	  Ang    = 1._dp / 0.529177_dp
 	  eV     = 1._dp / 27.211396132_dp
 	  kcal   = 1.602177E-19_dp * 6.022140857E23_dp / 4184.0_dp !23.06055347_dp
 	  pi     = DACOS(-1.d0)
 	  Nav    = 6.022140857d23
-	
+
 	elseif ( init_type == 'NEB') then !initialize Nudged elastic band variables
           if (NEB_Nimages .lt. 3) STOP 'Runing NEB with less than 3 images'
 	  NEB_firstimage=1
@@ -144,21 +146,20 @@
 	    PNEB_ini_atom=fdf_integer('PNEBi',1)
 	    PNEB_last_atom=fdf_integer('PNEBl',natot)
 	  end if
-	
+
 	  if (NEB_move_method .eq.3) then
 	    allocate(NEB_time_steep(NEB_Nimages), NEB_alpha(NEB_Nimages),NEB_Ndescend(NEB_Nimages))
 	    NEB_time_steep=time_steep
 	    NEB_alpha=alpha
 	    NEB_Ndescend=0
 	  end if
-	
+
 	  NEB_CI=fdf_integer('CI-NEB',0)
-	
+
 	else
 	  STOP "Wrong init_type"
 	end if
-	
+
 	return
  2     stop 'read: problem reading partial freeze block'
 	end subroutine init_hybrid
-

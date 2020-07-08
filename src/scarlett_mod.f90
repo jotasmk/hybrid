@@ -193,6 +193,7 @@
 !imptype  multiimp  kimp        impeq          perimp
 
 !!!! LJ & coulomb
+  logical :: scale14 !Turns on/off 1-4 scaling
 	integer, dimension(:), allocatable :: scalexat !scalexat(i) number of scaled-LJ&coul atoms for atom i
 	integer, dimension(:,:), allocatable :: scale !scale(i,j) j-esimo atomo de interaccion LJ&coul escalada con el atomo i-esimo
 
