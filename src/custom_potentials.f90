@@ -1,17 +1,19 @@
-!****************************************************************************************
+!******************************************************************************************
 ! This subroutine reads fdf specifications regarding custom potentials.
 ! Additional custom potential options should be added here.
 ! Options available
 ! custompot_type = 1 Special potential for a certain torsion
 !   dihe_type = 1 Ryckaert-Belleman dihedral: sum from i=1 to ncos V(i)*cos(dihe)**(i-1)
+!   dihe_type = 2 sum from i=1 to n_customdihe V(i)*(1+sign_customdihe*cos(per_customdihe))
 ! custompot_type = 2 London-Eyring-Polanyi-Sato (LEPS) Potential for a three-site complex
 ! J. Semelak 2020
-!****************************************************************************************
+!******************************************************************************************
 
   subroutine custom_potentials_assign(custompot_type)
 
   use fdf
   use scarlett, only: custom_dihe, cos_weights, ncos, dihe_type, &
+  n_customdihe,k_customdihe,sign_customdihe,per_customdihe, &
   lepsmask,leps1D,leps1B,leps1R0,leps3D,leps3B,leps3R0
   implicit none
   integer :: i, iunit, custompot_type
@@ -29,7 +31,19 @@
         read(iunit,*) exp, ncos
         allocate(cos_weights(ncos))
         read(iunit,*) exp, (cos_weights(i),i=1,ncos)
-         write(6,*)  'Cosine weights (kcal/mol): ', cos_weights(1:ncos)
+        write(6,*)  'Cosine weights (kcal/mol): ', cos_weights(1:ncos)
+      elseif (dihe_type .eq. 2) then
+        write(6,'(/,a)')  'Potential type: custom dihe type 2'
+        read(iunit,*) exp, n_customdihe
+        write(6,*)  'Number of terms of custom dihe type 2: ', n_customdihe
+        allocate(k_customdihe(n_customdihe),sign_customdihe(n_customdihe),per_customdihe(n_customdihe))
+        read(iunit,*) exp,(k_customdihe(i),i=1,n_customdihe)!kcal/mol
+        read(iunit,*) exp,(sign_customdihe(i),i=1,n_customdihe)
+        read(iunit,*) exp,(per_customdihe(i),i=1,n_customdihe)
+        write(6,*)  'Parameters:'
+        write(6,*)  'k(kcal/mol)' ,k_customdihe(1:n_customdihe)
+        write(6,*)  'signs ' ,sign_customdihe(1:n_customdihe)
+        write(6,*)  'per ' ,per_customdihe(1:n_customdihe)
       endif
     elseif (custompot_type .eq. 2) then ! LEPS
       read(iunit,*) exp,(lepsmask(i),i=1,3)
@@ -55,6 +69,7 @@
 
   subroutine custom_dihe_energy_forces(Etots)
   use scarlett, only: custom_dihe, cos_weights, ncos, rclas, fdummy, dihe_type, &
+  n_customdihe,k_customdihe,sign_customdihe,per_customdihe, &
   natot, eV, Ang, kcal
 
   implicit none
@@ -101,7 +116,6 @@
     call diheforce2(natot,rclas,at1,at2,at3,at4,4,1.d0,fdihe)
     fnew(1:3,4)=fdihe(10:12)
 
-    fnew=-fnew !diheforce2 subroutine does not include the minus sign regarding F=-dV
     factor=0.d0
 
     do i=1,ncos
@@ -110,14 +124,48 @@
     factor=factor*(-DSIN(dihe))
 
     fnew=factor*fnew
-    fnew=fnew*eV/(Ang*kcal) ! Converts fnew to Hartree/bohr
+    fnew=fnew*eV/(kcal) ! Converts fnew to Hartree/bohr
 
     !summs forces to fdummy
     fdummy(1:3,at1)= fdummy(1:3,at1)+fnew(1:3,1)
     fdummy(1:3,at2)= fdummy(1:3,at2)+fnew(1:3,2)
     fdummy(1:3,at3)= fdummy(1:3,at3)+fnew(1:3,3)
     fdummy(1:3,at4)= fdummy(1:3,at4)+fnew(1:3,4)
+
+  elseif(dihe_type .eq. 2) then !type 2
+    Edihe=0.d0
+    do i=1,n_customdihe
+      Edihe=Edihe+ &
+      k_customdihe(i)*(1.d0+dble(sign_customdihe(i))*(DCOS(dble(per_customdihe(i))*dihe)))
+    enddo
+
+    !summs energy to Etots
+    Etots=Etots+Edihe*eV/kcal
+
+    do i=1,n_customdihe
+      fnew=0.d0
+      fdihe=0.d0
+
+    !compute forces (kcal/mol)
+      call diheforce2(natot,rclas,at1,at2,at3,at4,1,1.d0,fdihe)
+      fnew(1:3,1)=fdihe(1:3)
+      call diheforce2(natot,rclas,at1,at2,at3,at4,2,1.d0,fdihe)
+      fnew(1:3,2)=fdihe(4:6)
+      call diheforce2(natot,rclas,at1,at2,at3,at4,3,1.d0,fdihe)
+      fnew(1:3,3)=fdihe(7:9)
+      call diheforce2(natot,rclas,at1,at2,at3,at4,4,1.d0,fdihe)
+      fnew(1:3,4)=fdihe(10:12)
+
+      factor=k_customdihe(i)*dble(sign_customdihe(i)*per_customdihe(i))*(-DSIN(dihe*dble(per_customdihe(i))))
+      fnew=factor*fnew
+      fnew=fnew*eV/(kcal) ! Converts fnew to Hartree/bohr
+        fdummy(1:3,at1)= fdummy(1:3,at1)+fnew(1:3,1)
+      fdummy(1:3,at2)= fdummy(1:3,at2)+fnew(1:3,2)
+      fdummy(1:3,at3)= fdummy(1:3,at3)+fnew(1:3,3)
+      fdummy(1:3,at4)= fdummy(1:3,at4)+fnew(1:3,4)
+    enddo
   endif
+
 
   end subroutine custom_dihe_energy_forces
 
