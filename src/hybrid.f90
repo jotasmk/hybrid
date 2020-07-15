@@ -38,7 +38,7 @@ Program HYBRID
        bondxat, angexat, &
        angmxat, dihexat, &
        dihmxat, impxat, &
-       Em, Rm, &
+       scale14, Em, Rm, &
        fdummy, cfdummy, &
        rclas, vat, aat, izs, &
        linkatom, numlink, linkat, linkqm, linkmm, linkmm2, &
@@ -323,6 +323,8 @@ Program HYBRID
       call NEB_make_initial_band(usesavecg)
    endif
 
+   if(mm .and. .not. scale14) write(6,'(/a)') &
+   'mm: 1-4 non-bonded interactions are turned off'
 
 ! Reading LinkAtom variables
    if(qm.and.mm) then

@@ -893,7 +893,7 @@ c subrutina que calcula la energia y fuerzas de terminos non-bonded
      .       sfc,timestep,
      .       na_u,natot,rclas,water,masst,ewat,fwat)
 
-	use scarlett, only: max_angle_ex, max_dihe_ex!, max_angle_mid,max_dihe_mid
+	use scarlett, only: max_angle_ex, max_dihe_ex, scale14!, max_angle_mid,max_dihe_mid
 
         implicit none
 c      vbles grales
@@ -1081,6 +1081,7 @@ c test Nick
 !	  write(*,*) i, scalexat(i), scale(i,1:scalexat(i))
 !	end do
 
+      if(scale14) then
 	do i=1,nac
 	 do k=1,scalexat(i)
 	 j=scale(i,k)
@@ -1122,7 +1123,7 @@ c test Nick
                 felec(3,j)=felec(3,j)+dz2*fel
         enddo
 	enddo
-
+      endif
 
 c fin scaled nonbonden
 c loop nonscaled nonbonded

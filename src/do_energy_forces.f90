@@ -259,7 +259,7 @@
 	if (external_potential .gt. 0) call external_bias(external_potential,natot,rclas,fdummy,Etots)
 	if (custompot_type .eq. 1) call custom_dihe_energy_forces(Etots)
 	if (custompot_type .eq. 2) call leps_energy_forces(Etots)
-	
+
 ! here Etot in Hartree
         if (.not. feopt) then
 	write(6,*)

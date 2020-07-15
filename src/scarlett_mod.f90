@@ -72,9 +72,10 @@
         integer :: innermax ! max steps for inner MD on feg calculations
 
 ! Custom potentials Variables JOTA
-        integer :: ncos, dihe_type
+        integer :: ncos, dihe_type, n_customdihe
         integer, dimension(4) :: custom_dihe
-        double precision, dimension(:), allocatable :: cos_weights
+        double precision, dimension(:), allocatable :: cos_weights, k_customdihe
+				integer, dimension(:), allocatable :: sign_customdihe, per_customdihe		
 				double precision, dimension(3) :: lepsmask
 				double precision, dimension(3) :: leps1D,leps1B,leps1R0
 				double precision, dimension(3) :: leps3D,leps3B,leps3R0
@@ -193,6 +194,7 @@
 !imptype  multiimp  kimp        impeq          perimp
 
 !!!! LJ & coulomb
+  logical :: scale14 !Turns on/off 1-4 scaling
 	integer, dimension(:), allocatable :: scalexat !scalexat(i) number of scaled-LJ&coul atoms for atom i
 	integer, dimension(:,:), allocatable :: scale !scale(i,j) j-esimo atomo de interaccion LJ&coul escalada con el atomo i-esimo
 
